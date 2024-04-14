@@ -1,6 +1,6 @@
 # <img src="public/icons/icon_48.png" width="45" align="left"> My Extension
 
-My Chrome Extension
+I uploaded the wrong thing.
 
 ## Features
 
