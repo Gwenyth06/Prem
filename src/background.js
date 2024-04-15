@@ -1,4 +1,5 @@
 import Medicine from './medicine.js';
+import Reminder from './reminder.js'
 import { v4 as uuidv4 } from 'uuid';
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
@@ -24,6 +25,24 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       if (medicine) {
         medicine.name = request.medicineName;
         medicine.dose = request.medicineDose;
+        chrome.storage.sync.set({ "medicines": medicines }, function() {
+          sendResponse({ success: true });
+        });
+      } else {
+        sendResponse({ success: false, error: "Medicine not found" });
+      }
+    });
+    return true;
+  } else if (request.action === "editReminderOfMedicine") {
+    chrome.storage.sync.get("medicines", function(data) {
+      const medicines = data.medicines || [];
+      const medicine = medicines.find(med => med.id === request.uuid);
+      console.log("1");
+      const reminderUUID = uuidv4();
+      if (medicine) {
+        console.log("2");
+        medicine.reminders.push(new Reminder(reminderUUID, request.reminderTime));
+        console.log("3");
         chrome.storage.sync.set({ "medicines": medicines }, function() {
           sendResponse({ success: true });
         });

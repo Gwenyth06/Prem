@@ -27,9 +27,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const uuid = listItem.dataset.uuid;
 
       if (target.classList.contains("editbtn")) {
+        console.log("edit");
         handleEdit(uuid);
       } else if (target.classList.contains("removebtn")) {
         handleRemove(uuid);
+      } else if (target.classList.contains("addReminderBtn")) {
+        handleAddReminder(uuid);
       }
     }
   });
@@ -42,6 +45,11 @@ document.addEventListener("DOMContentLoaded", function () {
           ${medicine.name}: ${medicine.dose}
           <button class="editbtn">Edit</button>
           <button class="removebtn">Remove</button>
+          <button class="addReminderBtn" id="addReminderBtn">Add Reminder</button>
+          <div id="hiddenReminder" style="display: none;">
+            <input type="time" id="reminderTime">
+            <button id="rbtn">Add Reminder</button>
+          </div>
         </li>
       `;
     }).join("");
@@ -81,5 +89,34 @@ document.addEventListener("DOMContentLoaded", function () {
       displayMedicines(medicines);
     });
   });
+
+  //uuid keeps changing because of eventlistener.
+  document.getElementById("medicine-list").addEventListener("click", function(event) {
+      var hiddenReminder = document.getElementById("hiddenReminder");
+      hiddenReminder.style.display = "block";
+console.log(event.target);
+        console.log(event.target.parentNode);
+        const uuid = event.target.parentNode.dataset.uuid;
+      
+      document.getElementById("rbtn").onclick = function() {
+        var reminderTime = document.getElementById("reminderTime").value;
+        
+        console.log(uuid);
+          chrome.runtime.sendMessage({ action: "editReminderOfMedicine", uuid, reminderTime }, function (response) {
+            if (response.success) {
+              console.log("Remminder added successfully.");
+              document.dispatchEvent(new Event("medListUpdated"));
+              hiddenReminder.style.display = "none";
+            } else {
+              console.error("Failed to add reminder.");
+            }
+          });
+        
+      }
+      
+      
+  })
+
+  function handleAddReminder(uuid) {}
 
 });
