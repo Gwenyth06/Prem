@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const listContainer = document.getElementById("medicine-list");
     const html = medicines.map((medicine) => {
       return `
-        <li data-uuid="${medicine.id}">
+        <li id="${medicine.id}" data-uuid="${medicine.id}">
           ${medicine.name}: ${medicine.dose}
           <button class="editbtn">Edit</button>
           <button class="removebtn">Remove</button>
@@ -154,5 +154,61 @@ document.addEventListener("DOMContentLoaded", function () {
       reminderDiv.innerHTML = "";
       document.body.appendChild(reminderDiv);  //listedeki ilaçlar silinince reminderDiv in parenti da silinmiş olduğundan boşa düşüyordu. Her ihtimale karşı her add reminder butonuna         
     });                                        //basıldığında div body'e sabit olacak şekilde fonksiyondan çıkıyor.
+  }
+
+  function handleEditReminders(uuid) {
+    chrome.runtime.sendMessage({action: "getMedicine", uuid}, function (medicine) {
+      console.log(medicine.reminders);
+      displayReminders(medicine);
+    })
+  }
+
+  function displayReminders(medicine) {
+    const reminders = medicine.reminders;
+    const listContainer = document.getElementById("reminder-list");
+    const medlistli = document.getElementById(medicine.id);
+    medlistli.appendChild(listContainer);
+    const html = reminders.map((reminder) => {
+      return `
+        <li data-muuid="${medicine.id}" data-uuid="${reminder.id}">
+          ${reminder.date}
+          <button class="editReminderBtn" id="editReminderBtn">Edit</button>
+          <button class="removeReminderBtn" id="removeReminderBtn">Remove</button>
+        </li>
+      `;
+    }).join("");
+
+    listContainer.innerHTML = `<ul>${html}</ul>`;
+  }
+
+  document.getElementById("reminder-list").addEventListener("click", function (event) {
+    const target = event.target;
+    const listItem = target.closest("li");
+
+    if (listItem) {
+      const uuid = listItem.dataset.uuid;
+      const muuid = listItem.dataset.muuid;
+
+      if (target.classList.contains("editReminderBtn")) {
+        console.log("edit");
+        handleEditReminder(uuid,muuid);
+      } else if (target.classList.contains("removeReminderBtn")) {
+        handleRemoveReminder(uuid);
+      }
+    }
+  });
+
+  function handleEditReminder(uuid, muuid) {
+    var time = prompt("Enter time:");
+
+    if (time) {
+      chrome.runtime.sendMessage({ action: "editReminder", uuid, muuid, time }, function (response) {
+        if (response.success) {
+          console.log("Reminder edited successfully.");
+        } else {
+          console.error("Failed to edit reminder.");
+        }
+      });
+    }
   }
 });
