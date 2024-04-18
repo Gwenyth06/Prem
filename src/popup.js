@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
     displayMedicines(medicines);
   });
 
+
   document.getElementById("medicine-list").addEventListener("click", function (event) {
     const target = event.target;
     const listItem = target.closest("li");
@@ -34,6 +35,8 @@ document.addEventListener("DOMContentLoaded", function () {
       } else if (target.classList.contains("addReminderBtn")) {
         console.log(uuid + " / " + listItem);
         handleAddReminder(uuid, listItem);
+      } else if (target.classList.contains("editRemindersBtn")) {
+        handleEditReminders(uuid);
       }
     }
   });
@@ -47,6 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <button class="editbtn">Edit</button>
           <button class="removebtn">Remove</button>
           <button class="addReminderBtn" id="addReminderBtn">Add Reminder</button>
+          <button class="editRemindersBtn" id="editRemindersBtn">Edit Reminders</button>
         </li>
       `;
     }).join("");
@@ -87,37 +91,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  //uuid keeps changing because of eventlistener.
-  //   document.getElementById("medicine-list").addEventListener("click", function(event) {
-  //       var hiddenReminder = document.getElementById("hiddenReminder");
-  //       hiddenReminder.style.display = "block";
-  // console.log(event.target);
-  //         console.log(event.target.parentNode);
-  //         const uuid = event.target.parentNode.dataset.uuid;
-
-  //       document.getElementById("rbtn").onclick = function() {
-  //         var reminderTime = document.getElementById("reminderTime").value;
-
-  //         console.log(uuid);
-  //           chrome.runtime.sendMessage({ action: "editReminderOfMedicine", uuid, reminderTime }, function (response) {
-  //             if (response.success) {
-  //               console.log("Remminder added successfully.");
-  //               document.dispatchEvent(new Event("medListUpdated"));
-  //               hiddenReminder.style.display = "none";
-  //             } else {
-  //               console.error("Failed to add reminder.");
-  //             }
-  //           });
-
-  //       }
-
-
-  //   })
-
-  // <div id="hiddenReminder" style="display: none;">
-  //             <input type="time" id="reminderTime">
-  //             <button id="rbtn">Add Reminder</button>
-  //           </div>
 
   function handleAddReminder(uuid, listItem) {
 

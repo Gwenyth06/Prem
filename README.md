@@ -1,6 +1,7 @@
 # <img src="public/icons/icon_48.png" width="45" align="left"> My Extension
 
-I uploaded the wrong thing.
+This is a Chrome extension designed to remind you to take your pills while surfing the web for prolonged periods.
+It is not yet complete
 
 ## Features
 
