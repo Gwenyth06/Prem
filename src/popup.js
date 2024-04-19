@@ -36,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log(uuid + " / " + listItem);
         handleAddReminder(uuid, listItem);
       } else if (target.classList.contains("editRemindersBtn")) {
+        console.log(uuid);
         handleEditReminders(uuid);
       }
     }
@@ -45,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const listContainer = document.getElementById("medicine-list");
     const html = medicines.map((medicine) => {
       return `
-        <li data-uuid="${medicine.id}">
+        <li id="${medicine.id}" data-uuid="${medicine.id}">
           ${medicine.name}: ${medicine.dose}
           <button class="editbtn">Edit</button>
           <button class="removebtn">Remove</button>
@@ -131,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function handleEditReminders(uuid) {
     chrome.runtime.sendMessage({action: "getMedicine", uuid}, function (medicine) {
-      console.log(medicine.reminders);
+      console.log(medicine.name);
       displayReminders(medicine);
     })
   }
@@ -140,6 +141,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const reminders = medicine.reminders;
     console.log(reminders);
     const listContainer = document.getElementById("reminder-list");
+    var li = document.getElementById(medicine.id);
+    li.appendChild(listContainer);
     const html = reminders.map((reminder) => {
       return `
         <li data-muuid="${medicine.id}" data-uuid="${reminder.id}">
@@ -156,6 +159,8 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("reminder-list").addEventListener("click", function (event) {
     const target = event.target;
     const listItem = target.closest("li");
+
+    
 
     if (listItem) {
       const uuid = listItem.dataset.uuid;
