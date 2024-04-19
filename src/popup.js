@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       chrome.runtime.sendMessage({ action: "editReminderOfMedicine", uuid, reminderTime }, function (response) {
                     if (response.success) {
-                      console.log("Remminder added successfully.");
+                      console.log("Reminder added successfully.");
                       document.dispatchEvent(new Event("medListUpdated"));
                     } else {
                       console.error("Failed to add reminder.");
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function handleEditReminders(uuid) {
     chrome.runtime.sendMessage({action: "getMedicine", uuid}, function (medicine) {
       console.log(medicine.name);
-      displayReminders(medicine);
+      displayReminders(medicine); //
     })
   }
 
@@ -141,8 +141,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const reminders = medicine.reminders;
     console.log(reminders);
     const listContainer = document.getElementById("reminder-list");
+    console.log(listContainer);
     var li = document.getElementById(medicine.id);
-    li.appendChild(listContainer);
+    li.appendChild(listContainer); //
     const html = reminders.map((reminder) => {
       return `
         <li data-muuid="${medicine.id}" data-uuid="${reminder.id}">
@@ -170,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("edit");
         handleEditReminder(uuid,muuid);
       } else if (target.classList.contains("removeReminderBtn")) {
-        handleRemoveReminder(uuid);
+        handleRemoveReminder(uuid,muuid);
       }
     }
   });
@@ -187,6 +188,21 @@ document.addEventListener("DOMContentLoaded", function () {
           console.error("Failed to edit reminder.");
         }
       });
+    }
+  }
+
+  function handleRemoveReminder(uuid, muuid) {
+    var askRemove = confirm("Are you sure to delete this reminder?");
+
+    if(askRemove) {
+      chrome.runtime.sendMessage({ action: "removeReminder", uuid, muuid}, function (response) {
+        if(response.success) {
+          handleEditReminders(muuid);
+          console.log("Reminder deleted successfully.");
+        } else {
+          console.error("Failed to delete reminder.");
+        }
+      })
     }
   }
 });
