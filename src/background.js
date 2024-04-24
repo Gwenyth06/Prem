@@ -2,38 +2,37 @@ import Medicine from './medicine.js';
 import Reminder from './reminder.js'
 import { v4 as uuidv4 } from 'uuid';
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "getMedicines") {
-    chrome.storage.sync.get("medicines", function(data) {
+    chrome.storage.sync.get("medicines", function (data) {
       sendResponse(data.medicines || []);
     });
     return true;
   } else if (request.action === "getMedicine") {
-    chrome.storage.sync.get("medicines", function(data) {
+    chrome.storage.sync.get("medicines", function (data) {
       const medicines = data.medicines || [];
-      const medicine = medicines.find(med => med.id === request.uuid);
+      const medicine = medicines.find(med => med.uuid === request.medicineUuid);
       sendResponse(medicine);
     });
     return true;
-  } 
-   else if (request.action === "addMedicine") {
+  } else if (request.action === "addMedicine") {
     const medicineId = uuidv4();
-    chrome.storage.sync.get("medicines", function(data) {
+    chrome.storage.sync.get("medicines", function (data) {
       const medicines = data.medicines || [];
       medicines.push(new Medicine(medicineId, request.medicineName, request.medicineDose));
-      chrome.storage.sync.set({ "medicines": medicines }, function() {
+      chrome.storage.sync.set({ "medicines": medicines }, function () {
         sendResponse({ success: true });
       });
     });
     return true;
   } else if (request.action === "editMedicine") {
-    chrome.storage.sync.get("medicines", function(data) {
+    chrome.storage.sync.get("medicines", function (data) {
       const medicines = data.medicines || [];
-      const medicine = medicines.find(med => med.id === request.uuid);
+      const medicine = medicines.find(med => med.uuid === request.medicineUuid);
       if (medicine) {
-        medicine.name = request.medicineName;
-        medicine.dose = request.medicineDose;
-        chrome.storage.sync.set({ "medicines": medicines }, function() {
+        medicine.name = request.newName;
+        medicine.dose = request.newDose;
+        chrome.storage.sync.set({ "medicines": medicines }, function () {
           sendResponse({ success: true });
         });
       } else {
@@ -41,17 +40,31 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       }
     });
     return true;
-  } else if (request.action === "editReminderOfMedicine") {
-    chrome.storage.sync.get("medicines", function(data) {
+  } else if (request.action === "removeMedicine") {
+    chrome.storage.sync.get("medicines", function (data) {
       const medicines = data.medicines || [];
-      const medicine = medicines.find(med => med.id === request.uuid);
+      const index = medicines.findIndex(med => med.uuid === request.medicineUuid);
+      if (index !== -1) {
+        medicines.splice(index, 1);
+        chrome.storage.sync.set({ "medicines": medicines }, function () {
+          sendResponse({ success: true });
+        });
+      } else {
+        sendResponse({ success: false, error: "Medicine not found" });
+      }
+    });
+    return true;
+  } else if (request.action === "addReminder") {
+    chrome.storage.sync.get("medicines", function (data) {
+      const medicines = data.medicines || [];
+      const medicine = medicines.find(med => med.uuid === request.medicineUuid);
       console.log("1");
       const reminderUUID = uuidv4();
       if (medicine) {
         console.log("2");
         medicine.reminders.push(new Reminder(reminderUUID, request.reminderTime));
         console.log("3");
-        chrome.storage.sync.set({ "medicines": medicines }, function() {
+        chrome.storage.sync.set({ "medicines": medicines }, function () {
           sendResponse({ success: true });
         });
       } else {
@@ -59,14 +72,14 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       }
     });
     return true;
-   } else if (request.action === "editReminder") {
-    chrome.storage.sync.get("medicines", function(data) {
+  } else if (request.action === "editReminder") {
+    chrome.storage.sync.get("medicines", function (data) {
       const medicines = data.medicines || [];
-      const medicine = medicines.find(med => med.id === request.muuid);
-      const reminder = medicine.reminders.find(rem => rem.id === request.uuid);
-      if(reminder) {
-        reminder.date = request.time;
-        chrome.storage.sync.set({ "medicines": medicines }, function() {
+      const medicine = medicines.find(med => med.uuid === request.medicineUuid);
+      const reminder = medicine.reminders.find(rem => rem.uuid === request.reminderUuid);
+      if (reminder) {
+        reminder.time = request.newTime;
+        chrome.storage.sync.set({ "medicines": medicines }, function () {
           sendResponse({ success: true });
         });
       } else {
@@ -74,18 +87,15 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       }
     });
     return true;
-  } 
-  else if (request.action === "removeReminder") {
-    console.log(medicine.reminders);
-    chrome.storage.sync.get("medicines", function(data) {
+  } else if (request.action === "removeReminder") {
+    chrome.storage.sync.get("medicines", function (data) {
       const medicines = data.medicines || [];
-      const medicine = medicines.find(med => med.id === request.muuid);
-      const reminderIndex = medicine.reminders.findIndex(rem => rem.id === request.uuid);
-      if(reminderIndex !== -1) {
+      const medicine = medicines.find(med => med.uuid === request.medicineUuid);
+      const reminderIndex = medicine.reminders.findIndex(rem => rem.uuid === request.reminderUuid);
+      if (reminderIndex !== -1) {
         medicine.reminders.splice(reminderIndex, 1);
-        chrome.storage.sync.set({ "medicines": medicines }, function() {
+        chrome.storage.sync.set({ "medicines": medicines }, function () {
           sendResponse({ success: true });
-          
         });
       } else {
         sendResponse({ success: false, error: "Reminder not found" });
@@ -93,19 +103,5 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     });
     return true;
   }
-  else if (request.action === "removeMedicine") {
-    chrome.storage.sync.get("medicines", function(data) {
-      const medicines = data.medicines || [];
-      const index = medicines.findIndex(med => med.id === request.uuid);
-      if (index !== -1) {
-        medicines.splice(index, 1);
-        chrome.storage.sync.set({ "medicines": medicines }, function() {
-          sendResponse({ success: true });
-        });
-      } else {
-        sendResponse({ success: false, error: "Medicine not found" });
-      }
-    });
-    return true;
-  }
+
 });

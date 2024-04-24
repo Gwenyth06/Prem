@@ -1,7 +1,7 @@
 class Reminder {
-    constructor(id,date) {
-        this.id = id;
-        this.date = date;
+    constructor(uuid,time) {
+        this.uuid = uuid;
+        this.time = time;
     }
 }
 

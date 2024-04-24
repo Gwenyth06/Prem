@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const medicineList = document.getElementById("medicine-list");
+
   document.getElementById("btn2").onclick = function () {
     var medicineName = document.getElementById("medName").value;
     var medicineDose = document.getElementById("medDose").value;
@@ -6,8 +8,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (medicineName && medicineDose) {
       chrome.runtime.sendMessage({ action: "addMedicine", medicineName, medicineDose }, function (response) {
         if (response.success) {
+          chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
+            displayMedicines(response);
+          });
           console.log("Medicine added successfully.");
-          document.dispatchEvent(new Event("medListUpdated"));
         } else {
           console.error("Failed to add medicine.");
         }
@@ -15,59 +19,75 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
-  chrome.runtime.sendMessage({ action: "getMedicines" }, function (medicines) {
-    displayMedicines(medicines);
-  });
-
-
-  document.getElementById("medicine-list").addEventListener("click", function (event) {
-    const target = event.target;
-    const listItem = target.closest("li");
-
-    if (listItem) {
-      const uuid = listItem.dataset.uuid;
-
-      if (target.classList.contains("editbtn")) {
-        console.log("edit");
-        handleEdit(uuid);
-      } else if (target.classList.contains("removebtn")) {
-        handleRemove(uuid);
-      } else if (target.classList.contains("addReminderBtn")) {
-        console.log(uuid + " / " + listItem);
-        handleAddReminder(uuid, listItem);
-      } else if (target.classList.contains("editRemindersBtn")) {
-        console.log(uuid);
-        handleEditReminders(uuid);
-      }
-    }
+  chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
+    displayMedicines(response);
   });
 
   function displayMedicines(medicines) {
-    const listContainer = document.getElementById("medicine-list");
-    const html = medicines.map((medicine) => {
-      return `
-        <li id="${medicine.id}" data-uuid="${medicine.id}">
-          ${medicine.name}: ${medicine.dose}
-          <button class="editbtn">Edit</button>
-          <button class="removebtn">Remove</button>
-          <button class="addReminderBtn" id="addReminderBtn">Add Reminder</button>
-          <button class="editRemindersBtn" id="editRemindersBtn">Edit Reminders</button>
-        </li>
-      `;
-    }).join("");
+    medicineList.innerHTML = "";
+    medicines.forEach(function (medicine) {
+      const medicineItem = document.createElement("div");
+      medicineItem.textContent = `${medicine.name}: ${medicine.dose}`;
 
-    listContainer.innerHTML = `<ul>${html}</ul>`;
+      const editButton = document.createElement("button");
+      editButton.textContent = "Edit";
+      editButton.addEventListener("click", function () {
+        editMedicine(medicine.uuid);
+      });
+      medicineItem.appendChild(editButton);
+
+      const removeButton = document.createElement("button");
+      removeButton.textContent = "Remove";
+      removeButton.addEventListener("click", function () {
+        removeMedicine(medicine.uuid);
+      });
+      medicineItem.appendChild(removeButton);
+
+      const addReminderButton = document.createElement("button");
+      addReminderButton.textContent = "Add Reminder";
+      addReminderButton.addEventListener("click", function () {
+        addReminder(medicine.uuid);
+      });
+      medicineItem.appendChild(addReminderButton);
+
+      if (medicine.reminders && medicine.reminders.length > 0) {
+        const reminderList = document.createElement("ul");
+        medicine.reminders.forEach(function (reminder) {
+          const reminderItem = document.createElement("li");
+          reminderItem.textContent = reminder.time;
+
+          const editReminderButton = document.createElement("button");
+          editReminderButton.textContent = "Edit";
+          editReminderButton.addEventListener("click", function () {
+            editReminder(medicine.uuid, reminder.uuid);
+          });
+          reminderItem.appendChild(editReminderButton);
+
+          const removeReminderButton = document.createElement("button");
+          removeReminderButton.textContent = "Remove";
+          removeReminderButton.addEventListener("click", function () {
+            removeReminder(medicine.uuid, reminder.uuid);
+          });
+          reminderItem.appendChild(removeReminderButton);
+
+          reminderList.appendChild(reminderItem);
+        });
+        medicineItem.appendChild(reminderList);
+      }
+
+      medicineList.appendChild(medicineItem);
+    });
   }
 
-  function handleEdit(uuid) {
-    var medicineName = prompt("Enter new medicine name:");
-    var medicineDose = prompt("Enter new medicine dose:");
-
-    if (medicineName && medicineDose) {
-      chrome.runtime.sendMessage({ action: "editMedicine", uuid, medicineName, medicineDose }, function (response) {
+  function editMedicine(medicineUuid) {
+    const newName = prompt("Enter new medicine name:");
+    const newDose = prompt("Enter new medicine dose:");
+    if (newName && newDose) {
+      chrome.runtime.sendMessage({ action: "editMedicine", medicineUuid, newName, newDose }, function (response) {
         if (response.success) {
-          console.log("Medicine edited successfully.");
-          document.dispatchEvent(new Event("medListUpdated"));
+          chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
+            displayMedicines(response);
+          });
         } else {
           console.error("Failed to edit medicine.");
         }
@@ -75,115 +95,44 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function handleRemove(uuid) {
-    chrome.runtime.sendMessage({ action: "removeMedicine", uuid }, function (response) {
-      if (response.success) {
-        console.log("Medicine removed successfully.");
-        document.dispatchEvent(new Event("medListUpdated"));
-      } else {
-        console.error("Failed to remove medicine.");
-      }
-    });
-  }
-
-  document.addEventListener("medListUpdated", function () {
-    chrome.runtime.sendMessage({ action: "getMedicines" }, function (medicines) {
-      displayMedicines(medicines);
-    });
-  });
-
-
-  function handleAddReminder(uuid, listItem) {
-
-    console.log("2/" + uuid + " / " + listItem);
-
-    var reminderInput = document.createElement("input");
-    reminderInput.type = "time";
-    reminderInput.placeholder = "Enter your reminder";
-    reminderInput.id = "reminderInput";
-
-    var saveReminderBtn = document.createElement("button");
-    saveReminderBtn.textContent = "Save Reminder";
-    saveReminderBtn.id = "saveReminderBtn";
-
-    var reminderDiv = document.getElementById("reminderDiv");
-    reminderDiv.innerHTML = ""; 
-    reminderDiv.appendChild(reminderInput);
-    reminderDiv.appendChild(saveReminderBtn);
-
-    listItem.appendChild(reminderDiv);
-
-    document.getElementById("saveReminderBtn").addEventListener("click", function () {
-      var reminderTime = reminderInput.value;
-      console.log("Reminder:", reminderTime);
-
-      chrome.runtime.sendMessage({ action: "editReminderOfMedicine", uuid, reminderTime }, function (response) {
-                    if (response.success) {
-                      console.log("Reminder added successfully.");
-                      document.dispatchEvent(new Event("medListUpdated"));
-                    } else {
-                      console.error("Failed to add reminder.");
-                    }
-                  });
-      reminderDiv.innerHTML = "";
-      document.body.appendChild(reminderDiv);  //listedeki ilaçlar silinince reminderDiv in parenti da silinmiş olduğundan boşa düşüyordu. Her ihtimale karşı her add reminder butonuna         
-    });                                        //basıldığında div body'e sabit olacak şekilde fonksiyondan çıkıyor.
-  }
-
-  function handleEditReminders(uuid) {
-    chrome.runtime.sendMessage({action: "getMedicine", uuid}, function (medicine) {
-      console.log(medicine.name);
-      displayReminders(medicine); //
-    })
-  }
-
-  function displayReminders(medicine) {
-    const reminders = medicine.reminders;
-    console.log(reminders);
-    const listContainer = document.getElementById("reminder-list");
-    console.log(listContainer);
-    var li = document.getElementById(medicine.id);
-    li.appendChild(listContainer); //
-    const html = reminders.map((reminder) => {
-      return `
-        <li data-muuid="${medicine.id}" data-uuid="${reminder.id}">
-          ${reminder.date}
-          <button class="editReminderBtn" id="editReminderBtn">Edit</button>
-          <button class="removeReminderBtn" id="removeReminderBtn">Remove</button>
-        </li>
-      `;
-    }).join("");
-
-    listContainer.innerHTML = `<ul>${html}</ul>`;
-  }
-
-  document.getElementById("reminder-list").addEventListener("click", function (event) {
-    const target = event.target;
-    const listItem = target.closest("li");
-
-    
-
-    if (listItem) {
-      const uuid = listItem.dataset.uuid;
-      const muuid = listItem.dataset.muuid;
-
-      if (target.classList.contains("editReminderBtn")) {
-        console.log("edit");
-        handleEditReminder(uuid,muuid);
-      } else if (target.classList.contains("removeReminderBtn")) {
-        handleRemoveReminder(uuid,muuid);
-      }
-    }
-  });
-
-  function handleEditReminder(uuid, muuid) {
-    var time = prompt("Enter time:");
-
-    if (time) {
-      chrome.runtime.sendMessage({ action: "editReminder", uuid, muuid, time }, function (response) {
+  function removeMedicine(medicineUuid) {
+    const confirmation = confirm("Are you sure you want to remove this medicine?");
+    if (confirmation) {
+      chrome.runtime.sendMessage({ action: "removeMedicine", medicineUuid }, function (response) {
         if (response.success) {
-          handleEditReminders(muuid);
-          console.log("Reminder edited successfully.");
+          chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
+            displayMedicines(response);
+          });
+        } else {
+          console.error("Failed to remove medicine.");
+        }
+      });
+    }
+  }
+
+  function addReminder(medicineUuid) {
+    const reminderTime = prompt("Enter reminder time:");
+    if (reminderTime) {
+      chrome.runtime.sendMessage({ action: "addReminder", medicineUuid, reminderTime }, function (response) {
+        if (response.success) {
+          chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
+            displayMedicines(response);
+          });
+        } else {
+          console.error("Failed to add reminder.");
+        }
+      });
+    }
+  }
+
+  function editReminder(medicineUuid, reminderUuid) {
+    const newTime = prompt("Enter new reminder time:");
+    if (newTime) {
+      chrome.runtime.sendMessage({ action: "editReminder", reminderUuid, medicineUuid, newTime }, function (response) {
+        if (response.success) {
+          chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
+            displayMedicines(response);
+          });
         } else {
           console.error("Failed to edit reminder.");
         }
@@ -191,18 +140,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function handleRemoveReminder(uuid, muuid) {
-    var askRemove = confirm("Are you sure to delete this reminder?");
-
-    if(askRemove) {
-      chrome.runtime.sendMessage({ action: "removeReminder", uuid, muuid}, function (response) {
-        if(response.success) {
-          handleEditReminders(muuid);
-          console.log("Reminder deleted successfully.");
+  function removeReminder(medicineUuid, reminderUuid) {
+    const confirmation = confirm("Are you sure you want to remove this reminder?");
+    if (confirmation) {
+      chrome.runtime.sendMessage({ action: "removeReminder", medicineUuid, reminderUuid }, function (response) {
+        if (response.success) {
+          chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
+            displayMedicines(response);
+          });
         } else {
-          console.error("Failed to delete reminder.");
+          console.error("Failed to remove reminder.");
         }
-      })
+      });
     }
   }
 });

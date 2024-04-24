@@ -1,6 +1,6 @@
 class Medicine {
-    constructor(id, name, dose) {
-      this.id = id; //Added id
+    constructor(uuid, name, dose) {
+      this.uuid = uuid; //Added id
       this.name = name;
       this.dose = dose;
       this.reminders = [];
