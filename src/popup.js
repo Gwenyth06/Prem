@@ -28,23 +28,24 @@ document.addEventListener("DOMContentLoaded", function () {
     medicines.forEach(function (medicine) {
       const medicineItem = document.createElement("div");
       medicineItem.textContent = `${medicine.name}: ${medicine.dose}`;
+      medicineItem.className = "medicineItem";
 
       const editButton = document.createElement("button");
-      editButton.textContent = "Edit";
+      editButton.className = "editButton";
       editButton.addEventListener("click", function () {
         editMedicine(medicine.uuid);
       });
       medicineItem.appendChild(editButton);
 
       const removeButton = document.createElement("button");
-      removeButton.textContent = "Remove";
+      removeButton.className = "removeButton";
       removeButton.addEventListener("click", function () {
         removeMedicine(medicine.uuid);
       });
       medicineItem.appendChild(removeButton);
 
       const addReminderButton = document.createElement("button");
-      addReminderButton.textContent = "Add Reminder";
+      addReminderButton.className = "addReminderButton";
       addReminderButton.addEventListener("click", function () {
         addReminder(medicine.uuid);
       });

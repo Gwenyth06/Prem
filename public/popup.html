@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>PREM</title>
-    <link rel="stylesheet" href="popup.css" />
-  </head>
-  <body>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>PREM</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+  <h1>PREM</h1>
+  <hr class="divider" />
+  <div id="medEntry">
+    <input type="text" id="medName" class="input" placeholder="Medicine Name:">
+    <input type="text" id="medDose" class="input" placeholder="Medicine Dose:">
+    <button type="submit" id="btn2" class="btn">Add</button>
+  </div>
     <hr class="divider" />
-    <div id="medEntry">
-      <input type="text" id="medName" placeholder="medicine name:">
-      <input type="text" id="medDose" placeholder="medicine dose:">
-      <button type="submit" id="btn2">Add</button>
-
-      <hr class="divider" />
-      <div>
-        <button id="deneme">DENEME</button>
-        <list id="medicine-list"></list>
-      </div>
+    <div class="lists">
+      <!--<button id="deneme">DENEME</button> -->
+      <list id="medicine-list"></list>
     </div>
-    <div id="reminderDiv"></div>
-    
-      <list id="reminder-list"></list>
-    
+  
 
-    <!--
+  <list id="reminder-list"></list>
+
+
+  <!--
       This HTML file opens when you click on icon from the toolbar.
 
       To begin the development, run `npm run watch`.
       To create a production bundle, use `npm run build`.
     -->
-  </body>
-  <script src="popup.js"></script>
+</body>
+<script src="popup.js"></script>
 
 </html>

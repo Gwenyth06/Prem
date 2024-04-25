@@ -1,0 +1,97 @@
+colors {
+	color: #05445E;
+}
+html{
+	background-color: #fffbf7;
+	width: 300px;
+}
+input[type="text"],
+input[type="button"] {
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  border-radius: 16px;
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+}
+h1 {
+	padding: 10px;
+	margin: 5px;
+  	text-align: left;
+  	align-items:end;
+  	color: #1685a8;
+  	font-size: 20px;
+	font-family: Arial, sans-serif;
+}
+
+div {
+	border-radius: 16px;
+	padding: 10px;
+  	margin: 5px;
+	text-align: left;
+	align-items:end;
+	color: #1685a8;
+	font-size: 14px;
+  	font-family: Arial, sans-serif;
+	text-transform: capitalize;
+}
+
+.lists {
+	overflow: auto;
+	max-height:  200px; 
+}
+
+.medicineItem {
+	background-color:#dcf3f4;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin: 10px 0;
+  font-family: Arial, sans-serif;
+}
+
+
+button {
+	padding: 5px 5px;
+	margin: 5px;
+	background-color:#dcf3f4;
+	border: none;
+	border-radius: 16px;
+	color: #1685a8;
+	font-family: Arial, sans-serif;
+	font-weight: bold;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+	transition: color 0.3 ease;
+  }
+  
+  button:hover {
+	background-color: #1685a8;
+	color:#fff;
+  }
+
+.removeButton {
+	background: url(icons/trash.png) no-repeat;
+	background-size: contain;
+	width: 18px;
+	height: 18px;
+}
+
+.editButton {
+	background: url(icons/pencil.png) no-repeat;
+	background-size: contain;
+	width: 18px;
+	height: 18px;
+}
+
+.addReminderButton {
+	background: url(icons/bell.png) no-repeat;
+	background-size: contain;
+	width: 18px;
+	height: 18px;
+}
