@@ -37,13 +37,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       medicineItem.appendChild(editButton);
 
-      const removeButton = document.createElement("button");
-      removeButton.className = "removeButton";
-      removeButton.addEventListener("click", function () {
-        removeMedicine(medicine.uuid);
-      });
-      medicineItem.appendChild(removeButton);
-
       const addReminderButton = document.createElement("button");
       addReminderButton.className = "addReminderButton";
       addReminderButton.addEventListener("click", function () {
@@ -51,6 +44,13 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       medicineItem.appendChild(addReminderButton);
 
+      const removeButton = document.createElement("button");
+      removeButton.className = "removeButton";
+      removeButton.addEventListener("click", function () {
+        removeMedicine(medicine.uuid);
+      });
+      medicineItem.appendChild(removeButton);
+      
       if (medicine.reminders && medicine.reminders.length > 0) {
         const reminderList = document.createElement("ul");
         medicine.reminders.forEach(function (reminder) {
