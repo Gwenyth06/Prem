@@ -62,8 +62,26 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       const reminderUUID = uuidv4();
       if (medicine) {
         console.log("2");
-        medicine.reminders.push(new Reminder(reminderUUID, request.reminderTime));
-        console.log("3");
+        const notificationOpts = {
+          type: "basic",
+          title: "Time for your " + medicine.name,
+          message: "Name: " + medicine.name + " Dose: " + medicine.dose,
+        }
+        medicine.reminders.push(new Reminder(reminderUUID, request.reminderTime, notificationOpts));
+
+        chrome.storage.sync.get("reminders", function (data) {
+          const allreminders = data.allreminders || [];
+          var r = new Reminder(reminderUUID, request.reminderTime, notificationOpts);
+          allreminders.push(r);
+          console.log("3");
+          chrome.alarms.create(reminderUUID,{
+            delayInMinutes: 0.1,
+            periodInMinutes: 1
+          });
+          console.log(allreminders);
+          chrome.storage.sync.set({ "reminders" : allreminders});
+        })
+        
         chrome.storage.sync.set({ "medicines": medicines }, function () {
           sendResponse({ success: true });
         });
@@ -77,6 +95,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       const medicines = data.medicines || [];
       const medicine = medicines.find(med => med.uuid === request.medicineUuid);
       const reminder = medicine.reminders.find(rem => rem.uuid === request.reminderUuid);
+      chrome.storage.sync.get("reminders", function(data) {
+        const r = data.find(r => r.uuid === request.reminderUuid)
+        r.time = request.newTime;
+        chrome.storage.sync.set({ "reminders" : allreminders});
+      })
       if (reminder) {
         reminder.time = request.newTime;
         chrome.storage.sync.set({ "medicines": medicines }, function () {
@@ -94,6 +117,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       const reminderIndex = medicine.reminders.findIndex(rem => rem.uuid === request.reminderUuid);
       if (reminderIndex !== -1) {
         medicine.reminders.splice(reminderIndex, 1);
+        //chrome.alarms.clear(reminderUuid);
         chrome.storage.sync.set({ "medicines": medicines }, function () {
           sendResponse({ success: true });
         });
@@ -103,5 +127,22 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
     return true;
   }
+  
 
+});
+
+chrome.alarms.onAlarm.addListener(function(reminder) {
+  chrome.storage.sync.get("reminders", function(reminders) {
+    for(var r in reminders) {
+      console.log(reminder.name);
+      console.log(r.uuid);
+      if( reminder.name === r.uuid) {
+        console.log(r.uuid);
+        console.log(r.notificationOpts);
+        chrome.notifications.create(r.notificationOpts);
+
+      }
+    }
+  })
+  
 });

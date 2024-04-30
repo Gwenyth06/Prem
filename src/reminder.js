@@ -1,7 +1,8 @@
 class Reminder {
-    constructor(uuid,time) {
+    constructor(uuid,time, notificationOpts) {
         this.uuid = uuid;
         this.time = time;
+        this.notificationOpts = notificationOpts;
     }
 }
 
