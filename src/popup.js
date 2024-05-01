@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const reminderList = document.createElement("ul");
         medicine.reminders.forEach(function (reminder) {
           const reminderItem = document.createElement("li");
-          reminderItem.textContent = reminder.time;
+          reminderItem.textContent = reminder.hour + ":" + reminder.min;
 
           const editReminderButton = document.createElement("button");
           editReminderButton.textContent = "Edit";
@@ -112,9 +112,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function addReminder(medicineUuid) {
-    const reminderTime = prompt("Enter reminder time:");
-    if (reminderTime) {
-      chrome.runtime.sendMessage({ action: "addReminder", medicineUuid, reminderTime }, function (response) {
+    const reminderHour = prompt("Enter reminder Hour:");
+    const reminderMin = prompt("Enter reminder Minute:");
+    if (reminderHour && reminderMin) {
+      chrome.runtime.sendMessage({ action: "addReminder", medicineUuid, reminderHour, reminderMin }, function (response) {
         if (response.success) {
           chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
             displayMedicines(response);
@@ -127,9 +128,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function editReminder(medicineUuid, reminderUuid) {
-    const newTime = prompt("Enter new reminder time:");
-    if (newTime) {
-      chrome.runtime.sendMessage({ action: "editReminder", reminderUuid, medicineUuid, newTime }, function (response) {
+    const newHour = prompt("Enter new reminder hour:");
+    const newMin = prompt("Enter new reminder minute:");
+    if (newHour && newMin) {
+      chrome.runtime.sendMessage({ action: "editReminder", reminderUuid, medicineUuid, newHour, newMin }, function (response) {
         if (response.success) {
           chrome.runtime.sendMessage({ action: "getMedicines" }, function (response) {
             displayMedicines(response);

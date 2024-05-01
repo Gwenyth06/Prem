@@ -66,7 +66,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
           title: "Time for your " + medicine.name,
           message: "Name: " + medicine.name + " Dose: " + medicine.dose,
         }
-        const newReminder = new Reminder(reminderUUID,medicine.uuid, request.reminderTime, notificationOpts);
+        const newReminder = new Reminder(reminderUUID,medicine.uuid, request.reminderHour,request.reminderMin, notificationOpts);
         medicine.reminders.push(newReminder);
         chrome.storage.sync.get("remindersStorage", function(data2) {
           const remindersStorage = data2.remindersStorage || [];
@@ -75,8 +75,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         })
 
         chrome.alarms.create(reminderUUID, {
-          delayInMinutes: 0.1,
-          periodInMinutes: 1
+          when: getAlarmTime(request.reminderHour, request.reminderMin)
         });
         
         chrome.storage.sync.set({ "medicines": medicines }, function () {
@@ -93,7 +92,23 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       const medicine = medicines.find(med => med.uuid === request.medicineUuid);
       const reminder = medicine.reminders.find(rem => rem.uuid === request.reminderUuid);
       if (reminder) {
-        reminder.time = request.newTime;
+        reminder.hour = request.newHour;
+        reminder.min = request.newMin;
+        chrome.alarms.clear(request.reminderUuid);
+
+        chrome.storage.sync.get("remindersStorage", function(data2) {
+          const remindersStorage = data2.remindersStorage || [];
+          const reminderEdited = remindersStorage.find( rem => rem.uuid === request.reminderUuid);
+          reminderEdited.hour = request.newHour;
+          reminderEdited.min = request.newMin;
+
+          chrome.alarms.create(request.reminderUuid, {
+            when: getAlarmTime(request.newHour, request.newMin)
+          });
+
+          chrome.storage.sync.set({"remindersStorage" : remindersStorage});
+        })
+
         chrome.storage.sync.set({ "medicines": medicines }, function () {
           sendResponse({ success: true });
         });
@@ -109,7 +124,18 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       const reminderIndex = medicine.reminders.findIndex(rem => rem.uuid === request.reminderUuid);
       if (reminderIndex !== -1) {
         medicine.reminders.splice(reminderIndex, 1);
-        //chrome.alarms.clear(reminderUuid);
+
+        chrome.storage.sync.get("remindersStorage", function(data2) {
+          const remindersStorage = data2.remindersStorage || [];
+          const remindersStorageIndex = remindersStorage.findIndex( rem => rem.uuid === request.reminderUuid);
+          if(remindersStorageIndex !== -1) {
+            remindersStorage.splice(remindersStorageIndex, 1);
+            chrome.alarms.clear(request.reminderUuid);
+            chrome.storage.sync.set({"remindersStorage" : remindersStorage});
+          }
+
+        });
+
         chrome.storage.sync.set({ "medicines": medicines }, function () {
           sendResponse({ success: true });
         });
@@ -133,3 +159,23 @@ chrome.alarms.onAlarm.addListener(function(reminder) {
     }
   });
 });
+
+function getAlarmTime(hour, minute) {
+  var now = new Date();
+  var alarmTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hour,
+      minute,
+      0, // Saniye
+      0 // Milisaniye
+  );
+
+  // Eğer alarm zamanı geçtiyse bir sonraki gün için ayarla
+  if (alarmTime <= now) {
+      alarmTime.setDate(alarmTime.getDate() + 1);
+  }
+
+  return alarmTime.getTime();
+}
